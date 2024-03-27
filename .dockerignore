@@ -1,0 +1,17 @@
+# Created Dir
+data/*
+store/*
+subs/*
+assets/
+
+# Python caches
+**/__pycache__/
+
+# Build Dirs
+.docqna/
+.docqna-dev/
+.vscode/
+.git/
+
+# File data
+.gitignore

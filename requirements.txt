@@ -1,0 +1,9 @@
+sentence-transformers==2.2.2
+langchain==0.0.313
+openai==0.28.1
+streamlit==1.27.2
+PyPDF2==3.0.1
+chromadb==0.4.14
+python-dotenv==1.0.0
+pdf2image==1.17.0
+pytesseract==0.3.10
