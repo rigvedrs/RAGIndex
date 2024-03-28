@@ -31,7 +31,7 @@ def get_pdf_text(pdf_file: Any) -> list[Document]:
     - pdf_file (Any): A PDF file object to be processed.
  
     Returns:
-    - Document: A LLama Index Document containing the extracted text content and metadata. 
+    - list[Document]: A list of LLama Index Documents containing the extracted text content and metadata. 
                 If the document needs OCR, returns the document with an error message
  
     Notes:

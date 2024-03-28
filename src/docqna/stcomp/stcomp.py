@@ -59,7 +59,6 @@ def file_processing(files: list[Any]) -> None:
             for i,file in enumerate(files):
                 document = get_pdf_text(file)
                 # Check if document contains an error
-                st.write(document)
                 # Fallback to OCR if extracting text from PDF fails
                 if document.text == 'Error':
                     st.warning("Error extracting text from PDFs using the first method. Trying OCR...")
@@ -67,7 +66,7 @@ def file_processing(files: list[Any]) -> None:
                 
                 documents.append(document)
             st.info(
-                f"PDF processing completed. Number of Documents: {len(documents):,}"
+                f"PDF processing completed."
             ) 
             # st.write(documents)
             

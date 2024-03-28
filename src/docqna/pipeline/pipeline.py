@@ -51,16 +51,16 @@ def get_pipeline() -> dict:
             embed_model,
         ],
         docstore=RedisDocumentStore.from_host_and_port(
-            "localhost", params['redis']['port_no'], namespace=params['redis']['doc_store_name']
+            params['redis']['host_name'], params['redis']['port_no'], namespace=params['redis']['doc_store_name']
         ), 
         vector_store=RedisVectorStore(
             index_name=params['redis']['vector_index_name'],
             index_prefix=params['redis']['vector_index_prefix'],
-            redis_url="redis://localhost:"+str(params['redis']['port_no']),
+            redis_url="redis://" + params['redis']['host_name'] + ":" + str(params['redis']['port_no']),
             # index_args = {'dims:': 3072}
         ),
         cache=IngestionCache(
-            cache=RedisCache.from_host_and_port("localhost", params['redis']['port_no']),
+            cache=RedisCache.from_host_and_port(params['redis']['host_name'], params['redis']['port_no']),
             collection=params['redis']['cache_name'],
         ),
         docstore_strategy=DocstoreStrategy.DUPLICATES_ONLY,
