@@ -70,7 +70,7 @@ def file_processing(files: list[Any]) -> None:
             ) 
             # st.write(documents)
             
-            # Add Documents to Vector Store
+            # Initialise performance counter
             t0 = perf_counter()
             # Get text nodes
             nodes = get_text_nodes(documents, pipeline)
