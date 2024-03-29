@@ -57,22 +57,22 @@ def file_processing(files: list[Any]) -> None:
             documents = []
             # Loop across every file that has been uploaded
             for i,file in enumerate(files):
-                document = get_pdf_text(file)
+                document_list = get_pdf_text(file)
                 # Check if document contains an error
                 # Fallback to OCR if extracting text from PDF fails
-                if document.text == 'Error':
+                if document_list[0].text == 'Error':
                     st.warning("Error extracting text from PDFs using the first method. Trying OCR...")
-                    document = get_pdf_text_ocr(copy_files[i])
+                    document_list = get_pdf_text_ocr(copy_files[i])
                 
-                documents.append(document)
+                documents.extend(document_list)
             st.info(
                 f"PDF processing completed."
             ) 
             # st.write(documents)
             
-            # Add Documents to Vector Store
+            # Initialise performance counter for time
             t0 = perf_counter()
-            # Get text nodes
+            # Perform the necessary processing on the text and obtain the text nodes
             nodes = get_text_nodes(documents, pipeline)
             t_delta = (perf_counter() - t0) / 60
 

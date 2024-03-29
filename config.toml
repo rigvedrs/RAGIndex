@@ -8,7 +8,7 @@ chunk_size = 1000   # The size of the chunks to be separated as Nodes
 chunk_overlap = 100    # Number of overlapping characters between adjacent chunks
 
 [redis]
-host_name = '172.18.0.3'   # Host Name where the Redis Server is running 
+host_name = 'localhost'   # Host Name where the Redis Server is running 
 port_no = 6379    # Port Number where the Redis Server is running
 doc_store_name = "DocStore_t1"      # Namespace where the Docs are tracked
 vector_index_name = "VecStore_t1"   # Namespace where the vectors are stored
