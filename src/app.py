@@ -1,14 +1,19 @@
 # Third-Party Libraries
 import streamlit as st
+from streamlit.type_util import Key
+
+# Basic Page layout
+st.set_page_config(
+    page_title="Document Insight", page_icon=":books:", layout="wide"
+)
+
 from dotenv import load_dotenv
 
 # Module Imports
 from docqna.HTMLTemplates import css
 from docqna.stcomp import initialize_session_state, file_processing, handle_user_input
-
-
 # Load environment variables
-load_dotenv(dotenv_path="../.env", verbose=True)
+load_dotenv(dotenv_path="./.env", verbose=True)
 
 
 def main() -> None:
@@ -29,25 +34,24 @@ def main() -> None:
     Note:
     The actual file processing and query functionalities are encapsulated in separate functions and modules for modularity and maintainability.
     """
-    # Basic Page layout
-    st.set_page_config(
-        page_title="Document Insight", page_icon=":books:", layout="wide"
-    )
+
     # Set our CSS
     st.write(css, unsafe_allow_html=True)
 
     # Initialize session-state
     initialize_session_state()
+    if 'suggestions' not in st.session_state:
+        st.session_state['suggestions'] = []
 
     # Set Title of the page
     st.title(body="Document Insight :books:")
 
     try:
         # Handle user's query (Placeholder)
-        user_query = st.text_input(label="Enter your query about the documents:")
-        # If user Question is not empty string then Get Reply from the BOT
-        if user_query != "":
+        user_query = st.text_input("Enter your question:")
+        if user_query:  
             handle_user_input(user_query)
+
     except Exception as e:
         st.error(f"Query Error: {e}")
 
@@ -57,9 +61,9 @@ def main() -> None:
         st.subheader(body="Upload Your Documents")
         # The element that allows user to upload PDFs from the user
         files = st.file_uploader(
-            label="Upload PDF documents for processing:",
+            label="Upload PDF, Docx or txt documents for processing:",
             accept_multiple_files=True,
-            type="pdf",
+            type=["pdf", "docx", "txt"],
         )
         # The Button to press, the Files are uploaded
         # The condition to proceed is that both file and button should not return None

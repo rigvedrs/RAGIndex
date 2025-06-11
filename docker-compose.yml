@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  docqna:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: docqna:v3
+    ports:
+      - "8501:8501"
+    command: ["streamlit", "run", "./src/app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.maxUploadSize=4000"]
+    networks:
+      - docqna-network
+    depends_on:
+      - redis
+    volumes:
+      - "./:/DocQna" 
+
+
+  redis:
+    image: redis/redis-stack-server:latest
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+    networks:
+      - docqna-network
+    volumes:
+      - "./store/vecdb:/data"
+
+networks:
+  docqna-network:
+    driver: bridge
