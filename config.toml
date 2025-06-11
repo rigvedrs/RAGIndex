@@ -14,3 +14,6 @@ doc_store_name = "DocStore_v1"      # Namespace where the Docs are tracked
 vector_index_name = "VecStore_v1"   # Namespace where the vectors are stored
 vector_index_prefix = "VecStore_v1"    # Prefix of vector store name
 cache_name = "CacheStore_v1"       # Namespace of the cache storage
+
+[paths]
+data_path = "/RAGIndex/data/"

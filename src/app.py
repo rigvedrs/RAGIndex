@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 from docqna.HTMLTemplates import css
 from docqna.stcomp import initialize_session_state, file_processing, handle_user_input
 # Load environment variables
+load_dotenv(dotenv_path="../.env", verbose=True)
 load_dotenv(dotenv_path="./.env", verbose=True)
 
 
@@ -40,8 +41,7 @@ def main() -> None:
 
     # Initialize session-state
     initialize_session_state()
-    if 'suggestions' not in st.session_state:
-        st.session_state['suggestions'] = []
+    
 
     # Set Title of the page
     st.title(body="Document Insight :books:")
@@ -49,6 +49,7 @@ def main() -> None:
     try:
         # Handle user's query (Placeholder)
         user_query = st.text_input("Enter your question:")
+        # user_query = st.chat_input("Ask your question")
         if user_query:  
             handle_user_input(user_query)
 

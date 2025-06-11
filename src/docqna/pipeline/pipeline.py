@@ -1,4 +1,6 @@
 import toml
+import os
+from pathlib import Path
 import streamlit as st
 
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
@@ -9,12 +11,17 @@ from llama_index.core.ingestion import (
 )
 from llama_index.storage.kvstore.redis import RedisKVStore as RedisCache
 from llama_index.storage.docstore.redis import RedisDocumentStore
-from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.node_parser import SentenceSplitter, SemanticSplitterNodeParser
 from llama_index.vector_stores.redis import RedisVectorStore
+from llama_index.core.schema import TransformComponent
 
 
 # Load parameters from the TOML file
-with open('./config.toml', 'r') as f:
+# with open('../config.toml', 'r') as f:
+# Get the directory of the current file and construct path to config.toml
+current_dir = Path(__file__).parent
+config_path = current_dir / '..' / '..' / '..' / 'config.toml'
+with open(config_path, 'r') as f:
     params = toml.load(f)
 
 
@@ -48,12 +55,18 @@ def get_pipeline() -> dict:
     # Initialising the Ingestion Pipeline for Document Ingestion
     pipeline = IngestionPipeline(
         transformations=[
-            SentenceSplitter(chunk_size=params['transformations']['chunk_size'], chunk_overlap=params['transformations']['chunk_overlap']),
+            # SentenceSplitter(chunk_size=params['transformations']['chunk_size'],
+            #                   chunk_overlap=params['transformations']['chunk_overlap']
+            #                 ),
+            SemanticSplitterNodeParser(buffer_size=1, breakpoint_percentile_threshold=95, embed_model=embed_model), # type: ignore
             embed_model,
+
         ],
+
         docstore=RedisDocumentStore.from_host_and_port(
             params['redis']['host_name'], params['redis']['port_no'], namespace=params['redis']['doc_store_name']
         ), 
+
         vector_store=RedisVectorStore(
             index_name=params['redis']['vector_index_name'],
             index_prefix=params['redis']['vector_index_prefix'],
@@ -61,10 +74,12 @@ def get_pipeline() -> dict:
             metadata_fields=["source", "page_num"],
             # index_args = {'dims:': 3072}
         ),
+
         cache=IngestionCache(
             cache=RedisCache.from_host_and_port(params['redis']['host_name'], params['redis']['port_no']),
             collection=params['redis']['cache_name'],
         ),
+
         docstore_strategy=DocstoreStrategy.DUPLICATES_ONLY,
     )
 

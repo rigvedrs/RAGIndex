@@ -1,5 +1,6 @@
-import os 
 from openai import OpenAI
+# import os
+
 def combine_prompts(full_chunk, answer):
     instruction_prompt = f''' 
     Prompt:
@@ -11,9 +12,16 @@ def combine_prompts(full_chunk, answer):
     - Use same words and formating used in full_chunk.
 '''
     return instruction_prompt
-# openai_api_key = os.environ['OPENAI_API_KEY']
+
+# Get OpenAI API key with proper error handling
+# openai_api_key = os.environ.get('OPENAI_API_KEY')
+# if not openai_api_key:
+#     print("Warning: OPENAI_API_KEY environment variable not set. Context generation will not work.")
 
 def get_context(full_chunk, answer):
+    # if not openai_api_key:
+    #     return "Error: OpenAI API key not configured. Please set the OPENAI_API_KEY environment variable."
+    
     try:
         client = OpenAI()
         response = client.completions.create(
@@ -34,4 +42,4 @@ def get_context(full_chunk, answer):
         # print(first_choice_text)
         return first_choice_text
     except Exception as e:
-        return e
+        return f"Error generating context: {str(e)}"

@@ -16,6 +16,7 @@ assets/
 
 # Database
 *.rdb
+.DS_Store
 
 # SENSITIVE INFORMATION!!!!!!!
 .env

@@ -34,32 +34,32 @@ def get_pdf_text(pdf_file: Any) -> list[Document]:
  
     Notes:
     - Each Document object contains the text content of a PDF and a metadata dictionary with the source PDF's name.
+    - Page Number is added to the beginnning and start of every page, for page number tracking in th chunks.
     """
 
     # Get Data from each PDF and convert it To Llama Index Document
     pdf = pdf_file
     # Get File name
     pdf_name: str = pdf.name
-    # # Get Contents in the PDF as text
-    # pdf_content: str = "\n\n".join(
-    #     page_content.extract_text() for page_content in PdfReader(pdf).pages
-    # )
-    # # Convert to Llama Index Doc Object
-    # pdf_doc = Document(text=pdf_content, id_ = pdf_name,  metadata={"source": pdf_name})
 
+    # For adding Document in pdf_docs and complete text in doc_text 
     pdf_docs = []
+    doc_text = ''
 
-    for page_num, page_content in enumerate(PdfReader(pdf).pages) :
-       pdf_docs.append(Document(text=page_content.extract_text(), 
-                                id_ = f"{pdf_name}_{page_num+1}",  
-                                metadata={"source": pdf_name, "page_num": page_num+1}))
+    for page_num, page_content in enumerate(PdfReader(pdf).pages) : # type: ignore
+        text_content = f'\n PAGE_NUM={page_num+1} \n {page_content.extract_text()} \n PAGE_NUM={page_num+1} \n' # type: ignore
+        doc_text += text_content
+        
+    pdf_docs = [Document(text=doc_text,  # type: ignore
+                        id_ = f"{pdf_name}",   # type: ignore
+                        metadata={"source": pdf_name})] # type: ignore
 
-    # Return contents in PDFs as a list of Llama Index Documents
+    # To check if document needs OCR
     page_content: str = "\n\n".join(
-        page_content.text.strip() for page_content in pdf_docs
+        page_content.text.strip() for page_content in pdf_docs # type: ignore
     )
 
-    # st.write(pdf_docs)
+    # If document needs OCR 
     if page_content == '\n' * len(page_content):
         return [Document(text='Error')]
     else:
@@ -83,18 +83,20 @@ def get_pdf_text_ocr(pdf_file: Any) -> List[Document]:
     - Each Document object contains the text content of a PDF and a metadata dictionary with the source
       PDF's name and the page number it was obtained from.
     """
-    pdf_filename = pdf_file.name 
+    print(pdf_file)
+    pdf_filename = pdf_file.filename 
     
     # Save the uploaded file to a temporary location
     with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
         tmp_file.write(pdf_file.read())
-        pdf_path = os.path.join('/DocQna/data',tmp_file.name)
+        pdf_path = os.path.join('../seagpt_backend/seagpt/data',tmp_file.name)
 
-    # Converting PDF to images
+        # Converting PDF to images
         images = convert_from_path(pdf_path, 500)
 
-    # Initialize empty list to append the text for each page
+    # Initialize list to add the Document and an empty string to append the text for each page
     pdf_docs = []
+    doc_text = ''
 
     # Iterate over the pages and extract the text using pytesseract
     for page_num, image in enumerate(images):
@@ -104,12 +106,10 @@ def get_pdf_text_ocr(pdf_file: Any) -> List[Document]:
         # Perform OCR on the image
         custom_config = ' '
         text = pytesseract.image_to_string(Image.open(image_path), lang='eng', config=custom_config)
-        # Create a Document object for each page text
-        pdf_doc = Document(text=text, 
-                           id_ = f"{pdf_filename}_{page_num+1}", 
-                           metadata={"source": pdf_filename, "page_num": page_num+1})
+        # Add the text to get the entire doc in one string
+        doc_text += f'\n PAGE_NUM={page_num+1} \n text \n PAGE_NUM={page_num+1} \n' # type: ignore
         
-        pdf_docs.append(pdf_doc)
+    pdf_docs = [Document(text=doc_text, id_ = f"{pdf_name}", metadata={"source": pdf_name})] # type: ignore
         
     # Clean up the temporary file
     # os.unlink(pdf_path)

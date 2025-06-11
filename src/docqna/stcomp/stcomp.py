@@ -4,15 +4,22 @@ from typing import Any
 import copy
 import os
 import hashlib
+import time
 import subprocess
 import io
+import toml
+from pathlib import Path
 
 # Third-Party Libraries
 import streamlit as st
 import nltk
 from docx import Document
 from fpdf import FPDF
-nltk.download('punkt_tab')
+try:
+    nltk.download('punkt_tab')
+except:
+    # Fallback to older punkt if punkt_tab is not available
+    nltk.download('punkt')
 
 # Module Imports
 from ..chat import get_conversation_engine
@@ -23,9 +30,25 @@ from ..display_image import show_image
 from ..context import get_context
 from nltk.tokenize import sent_tokenize
 
+# Testing
+import re
+
 # Initialising pipeline and embed model
 pipeline = get_pipeline()['pipeline']
 embed_model = get_pipeline()['embed_model']
+
+
+# Get the directory of the current file and construct path to config.toml
+current_dir = Path(__file__).parent
+config_path = current_dir / '..' / '..' / '..' / 'config.toml'
+with open(config_path, 'r') as f:
+    params = toml.load(f)
+# Create the directories if they dont exist
+data_path = params['paths']['data_path']
+os.makedirs(data_path, exist_ok=True)
+dir_path = data_path
+
+
 
 class CustomUploadedFile(io.BytesIO):
     def __init__(self, data, name):
@@ -35,18 +58,21 @@ class CustomUploadedFile(io.BytesIO):
     def __repr__(self):
         return f"CustomUploadedFile(name={self.name}, size={len(self.getvalue())})"
     
-# def convert_docx_to_pdf(input_file, output_file):
-#     subprocess.run(["pandoc", "-o", output_file, input_file])
+
 
 def convert_docx_to_pdf(input_file, output_file):
-    subprocess.run(["libreoffice", "--headless", "--convert-to", "pdf", "--outdir", os.path.dirname(output_file), input_file])
-    # Check if the output file exists, as LibreOffice may not create it if conversion fails
-    if os.path.exists(f"{input_file}.pdf"):
-        os.rename(f"{input_file}.pdf", output_file)
+    subprocess.run(["pandoc", "-o", output_file, input_file])
+
+
+
+def split_into_sentences(text):
+    sentences = sent_tokenize(text)
+    return sentences
+
+
     
 
-# Set the directory path
-dir_path = os.path.join('/DocQna/data')
+
 
 # Function to save the uploaded file
 def save_uploaded_file(uploaded_file):
@@ -63,30 +89,30 @@ def save_uploaded_file(uploaded_file):
 
 
 
+
+
 def txt_to_pdf(txt_file_path, pdf_file_path):
     # Create a new PDF object
     pdf = FPDF()
-
     # Open the text file for reading
     with open(txt_file_path, 'r', encoding='latin-1') as txt_file:
         # Get the content of the text file
         txt_content = txt_file.read()
-
     # Split the text content into lines
     lines = txt_content.splitlines()
-
     # Add a new page to the PDF
     pdf.add_page()
-
     # Set the font and font size
     pdf.set_font('Arial', size=12)
-
     # Loop through the lines and add them to the PDF
     for line in lines:
-        pdf.cell(w=200, h=10, txt=line, ln=1, align='L')
-
+        pdf.cell(w=200, h=10, txt=line, ln=1, align='L') # type: ignore
     # Save the PDF
     pdf.output(pdf_file_path)
+
+
+
+
 
 def initialize_session_state():
     """
@@ -103,6 +129,8 @@ def initialize_session_state():
         st.session_state.documents_processed = False
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = None
+
+
 
 
 def file_processing(files: list[Any]) -> None:
@@ -125,9 +153,7 @@ def file_processing(files: list[Any]) -> None:
             # Initialise documents to store all the Documents in the list
             documents = []
 
-            # Create the directories if they dont exist
-            data_path = "/DocQna/data/"
-            os.makedirs(data_path, exist_ok=True)
+
             
 
             # Loop across every file that has been uploaded
@@ -141,10 +167,9 @@ def file_processing(files: list[Any]) -> None:
                         st.warning("Error extracting text from PDFs using the first method. Trying OCR...")
                         document_list = get_pdf_text_ocr(copy_files[i])
                     
-                    documents.extend(document_list)
+                    # documents.extend(document_list)
                 
                 elif file.name.endswith(".docx"):
-
                     docx_file = file
                     docx_path = os.path.join(data_path, docx_file.name)
                     pdf_path = os.path.join(data_path, os.path.splitext(docx_file.name)[0] + ".pdf")
@@ -162,7 +187,8 @@ def file_processing(files: list[Any]) -> None:
                             uploaded_file = CustomUploadedFile(pdf_bytes, os.path.splitext(docx_file.name)[0] + ".pdf")
                             document_list = get_pdf_text(uploaded_file)  
                         else:
-                            st.error(f"PDF file {os.path.basename(pdf_path)} not found.")
+                            st.write(f"PDF file {os.path.basename(pdf_path)} not found.")
+
 
                                 
                 elif file.name.endswith(".txt"):
@@ -182,9 +208,6 @@ def file_processing(files: list[Any]) -> None:
                         document_list = get_pdf_text(uploaded_file)
                     else:
                         st.write(f"PDF file {os.path.basename(pdf_path)} not found.")
-
-
-            
 
                 # Append all the extracted pages in main document list
                 documents.extend(document_list)
@@ -213,9 +236,26 @@ def file_processing(files: list[Any]) -> None:
     except Exception as e:
         st.error(f"An error occurred: {e}")
 
-def split_into_sentences(text):
-    sentences = sent_tokenize(text)
-    return sentences
+
+
+
+def get_page_num(text: str):
+    # Regular expression pattern to find page number references
+    pattern = r'PAGE_NUM=(\d+)'
+
+    # Find all matches of the pattern in the text
+    matches = re.findall(pattern, text)
+
+    # Use a set to store unique page numbers
+    unique_page_numbers = set()
+
+    # Extract the numbers from the matches and store them in a set to ensure uniqueness
+    for match in matches:
+        unique_page_numbers.add(int(match))
+
+    return list(unique_page_numbers)
+
+
 
 
 def handle_user_input(user_query: str) -> None:
@@ -259,7 +299,6 @@ def handle_user_input(user_query: str) -> None:
                     with tab2:
                         # Initialize empty lists to store file names and page numbers
                         file_names = []
-                        page_numbers = []
                         # Iterate through response.source_nodes
                         for node in response.source_nodes:
                             # Append file name and page number to respective lists
@@ -278,22 +317,26 @@ def handle_user_input(user_query: str) -> None:
                             st.markdown(get_context(node.text, bot_response),unsafe_allow_html=True)
 
                     with tab3:
-                        for node in response.source_nodes:
-                            path = "./data/"+node.metadata['source']
+                        for node_idx, node in enumerate(response.source_nodes):
+                            path = data_path+node.metadata['source']
                             print(path)
-                            page_num = int(node.metadata['page_num'])-1
-                            print(page_num)
-                            images,image_path = show_image(path,page_num)
-                            st.image(images, caption=f"Page {page_num+1}", use_column_width=True)
-                            with open(image_path, "rb") as file:
-                                key = hashlib.sha256((image_path + str(idx)).encode()).hexdigest()
-                                st.download_button(
-                                    label="Download Page⬇️",
-                                    data=file,
-                                    file_name=image_path,
-                                    mime="image/png",
-                                    key=key
-                                )
+                            # page_num = int(node.metadata['page_num'])-1
+                            page_nums = get_page_num(node.text)
+                            if page_nums is []:
+                                st.error('NO PAGE NUM FOUND')
+                            for page_idx, page_num in enumerate(page_nums):
+                                st.write('PAGE_NUM found:' + str(page_num))
+                                images,image_path = show_image(path,page_num)
+                                st.image(images, caption=f"Page {page_num}", use_column_width=True)
+                                with open(image_path, "rb") as file:
+                                    key = hashlib.sha256((image_path + str(idx) + str(node_idx) + str(page_idx) + str(page_num) + "_tab3_long" + user_query).encode()).hexdigest() 
+                                    st.download_button(
+                                        label="Download Page⬇️",
+                                        data=file,
+                                        file_name=image_path,
+                                        mime="image/png",
+                                        key=key
+                                    )
                     break
             else:
                 st.write(
@@ -322,20 +365,25 @@ def handle_user_input(user_query: str) -> None:
                             st.markdown(get_context(node.text, bot_response),unsafe_allow_html=True)
 
                     with tab2:
-                        for node in response.source_nodes:
-                            path = "./data/"+node.metadata['source']
-                            page_num = int(node.metadata['page_num'])-1
-                            images,image_path = show_image(path,page_num)
-                            st.image(images, caption=f"Page {page_num+1}", use_column_width=True)
-                            with open(image_path, "rb") as file:
-                                key = hashlib.sha256((image_path + str(idx)).encode()).hexdigest()
-                                st.download_button(
-                                    label="Download Page⬇️",
-                                    data=file,
-                                    file_name=image_path,
-                                    mime="image/png",
-                                    key=key
-                                )               
+                        for node_idx, node in enumerate(response.source_nodes):
+                            path = data_path+node.metadata['source']
+                            # page_num = int(node.metadata['page_num'])-1
+                            page_nums = get_page_num(node.text)
+                            if page_nums is []:
+                                st.error('NO PAGE NUM FOUND')
+                            for page_idx, page_num in enumerate(page_nums):
+                                st.write('PAGE_NUM found:' + str(page_num))
+                                images,image_path = show_image(path,page_num)
+                                st.image(images, caption=f"Page {page_num}", use_column_width=True)
+                                with open(image_path, "rb") as file:
+                                    key = hashlib.sha256((image_path + str(idx) + str(node_idx) + str(page_idx) + str(page_num) + "_tab2_short" + user_query).encode()).hexdigest() 
+                                    st.download_button(
+                                        label="Download Page⬇️",
+                                        data=file,
+                                        file_name=image_path,
+                                        mime="image/png",
+                                        key=key
+                                    )               
         elif msg.role.name == 'USER':
             # Adding styles to Chat Boxes and messages
             st.write(
