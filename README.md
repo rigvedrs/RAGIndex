@@ -1,4 +1,4 @@
-# 📚 RAGIndex: AI-Powered Document Q&A with LlamaIndex & Streamlit
+# 📚 RAGIndex: Retrieval Augmented Generation (RAG) with LlamaIndex & Streamlit
 
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.27.2-FF4B4B?style=flat&logo=streamlit)](https://streamlit.io/)
 [![LlamaIndex](https://img.shields.io/badge/LlamaIndex-0.10.18-4285F4?style=flat)](https://docs.llamaindex.ai/)
