@@ -6,6 +6,8 @@ import pytesseract
 from PIL import Image
 import os
 import tempfile
+import streamlit as st
+
 
 # Llama Index
 from llama_index.core import Document
@@ -16,10 +18,6 @@ from llama_index.core.ingestion import (
 
 # For tracking error
 from torch.cuda import OutOfMemoryError
-
-# temp import 
-import streamlit as st
-
 
 
 
@@ -42,71 +40,81 @@ def get_pdf_text(pdf_file: Any) -> list[Document]:
     pdf = pdf_file
     # Get File name
     pdf_name: str = pdf.name
-    # Get Contents in the PDF as text
-    pdf_content: str = "\n\n".join(
-        page_content.extract_text() for page_content in PdfReader(pdf).pages
-    )
-    # Convert to Llama Index Doc Object
-    pdf_doc = Document(text=pdf_content, id_ = pdf_name,  metadata={"source": pdf_name})
+    # # Get Contents in the PDF as text
+    # pdf_content: str = "\n\n".join(
+    #     page_content.extract_text() for page_content in PdfReader(pdf).pages
+    # )
+    # # Convert to Llama Index Doc Object
+    # pdf_doc = Document(text=pdf_content, id_ = pdf_name,  metadata={"source": pdf_name})
+
+    pdf_docs = []
+
+    for page_num, page_content in enumerate(PdfReader(pdf).pages) :
+       pdf_docs.append(Document(text=page_content.extract_text(), 
+                                id_ = f"{pdf_name}_{page_num+1}",  
+                                metadata={"source": pdf_name, "page_num": page_num+1}))
 
     # Return contents in PDFs as a list of Llama Index Documents
-    print(pdf_doc)
-    page_content = pdf_doc.text.strip()
+    page_content: str = "\n\n".join(
+        page_content.text.strip() for page_content in pdf_docs
+    )
+
+    # st.write(pdf_docs)
     if page_content == '\n' * len(page_content):
-        return Document(text='Error')
+        return [Document(text='Error')]
     else:
-      return pdf_doc
+      return pdf_docs
     
 
 
 def get_pdf_text_ocr(pdf_file: Any) -> List[Document]:
     """
-    Extract text content from a list of PDF files by performing OCR and 
-    convert them to Llama Index Documents.
+    Extract text content from each page of a PDF file by performing OCR and 
+    convert them to Llama Index Documents. 
 
     Args:
     - pdf_file (Any): A PDF file object to be processed.
  
     Returns:
-    - Document: A LLama Index Document containing the extracted text content and metadata. 
+    - List[Document]: A List of LLama Index Documents containing the extracted text content and metadata. 
                 
  
     Notes:
-    - Each Document object contains the text content of a PDF and a metadata dictionary with the source PDF's name.
+    - Each Document object contains the text content of a PDF and a metadata dictionary with the source
+      PDF's name and the page number it was obtained from.
     """
     pdf_filename = pdf_file.name 
     
     # Save the uploaded file to a temporary location
     with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
         tmp_file.write(pdf_file.read())
-        pdf_path = tmp_file.name
+        pdf_path = os.path.join('/DocQna/data',tmp_file.name)
 
     # Converting PDF to images
         images = convert_from_path(pdf_path, 500)
 
-    # Initialize empty string to append the text for each page
-    full_text = ''
+    # Initialize empty list to append the text for each page
+    pdf_docs = []
 
     # Iterate over the pages and extract the text using pytesseract
-    for i, image in enumerate(images):
-        image_path = f'{os.path.splitext(pdf_path)[0]}_page_{i}.png'
+    for page_num, image in enumerate(images):
+        image_path = f'{os.path.splitext(pdf_path)[0]}_page_{page_num}.png'
         image.save(image_path, 'PNG')
         
         # Perform OCR on the image
         custom_config = ' '
         text = pytesseract.image_to_string(Image.open(image_path), lang='eng', config=custom_config)
-        full_text += text
-
+        # Create a Document object for each page text
+        pdf_doc = Document(text=text, 
+                           id_ = f"{pdf_filename}_{page_num+1}", 
+                           metadata={"source": pdf_filename, "page_num": page_num+1})
         
-    # Create a Document object for full text
-    pdf_doc = Document(text=full_text, id_ = pdf_filename, metadata={"source": pdf_filename})
-    
-    print(pdf_doc)
-    
+        pdf_docs.append(pdf_doc)
+        
     # Clean up the temporary file
-    os.unlink(pdf_path)
+    # os.unlink(pdf_path)
 
-    return pdf_doc
+    return pdf_docs
 
 
 
@@ -135,7 +143,7 @@ def get_text_nodes(documents: list[Document],
     try:
         nodes = pipeline.run(documents=documents)
         st.info(
-            f"PDF processing completed. Number of Nodes Ingested: {len(nodes):,}"
+            f"Number of Nodes Ingested: {len(nodes):,}"
         )
 
     except (Exception, OutOfMemoryError) as e:

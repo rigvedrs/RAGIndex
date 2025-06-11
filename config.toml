@@ -1,6 +1,6 @@
 [embed_model]
 model_name = "Suva/bge-base-finetune-v2"    # Name of the embedding model to load from HuggingFace Library
-cache_folder = "./store/models"    # Folder to cache the model in
+cache_folder = "/DocQna/store/models"    # Folder to cache the model in
 embed_batch_size = 1    # Batch size to pass the data at once to model (Keep low to prevent OutOfMemory Error)
 
 [transformations]
@@ -8,9 +8,9 @@ chunk_size = 1000   # The size of the chunks to be separated as Nodes
 chunk_overlap = 100    # Number of overlapping characters between adjacent chunks
 
 [redis]
-host_name = '172.18.0.3'   # Host Name where the Redis Server is running 
+host_name = 'redis'   # Host Name where the Redis Server is running 
 port_no = 6379    # Port Number where the Redis Server is running
-doc_store_name = "DocStore_t1"      # Namespace where the Docs are tracked
-vector_index_name = "VecStore_t1"   # Namespace where the vectors are stored
-vector_index_prefix = "VecStore"    # Prefix of vector store name
-cache_name = "CacheStore"       # Namespace of the cache storage
+doc_store_name = "DocStore_v1"      # Namespace where the Docs are tracked
+vector_index_name = "VecStore_v1"   # Namespace where the vectors are stored
+vector_index_prefix = "VecStore_v1"    # Prefix of vector store name
+cache_name = "CacheStore_v1"       # Namespace of the cache storage

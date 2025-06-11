@@ -8,7 +8,14 @@ WORKDIR /DocQna
 COPY . .
 
 # pip install dependencies
+RUN apt-get update && apt-get install -y poppler-utils
+RUN apt-get update && apt-get install -y tesseract-ocr-eng
+RUN apt-get update && apt-get install -y libreoffice
+# RUN apt-get update && apt-get install -y pandoc
+# RUN apt-get update && apt-get install -y texlive-latex-base
+# RUN apt-get update && apt-get install -y texlive-xetex
 RUN pip install --upgrade pip
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 
 # The port to be exposed

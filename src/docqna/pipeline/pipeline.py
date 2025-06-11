@@ -1,4 +1,5 @@
 import toml
+import streamlit as st
 
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core.ingestion import (
@@ -13,11 +14,11 @@ from llama_index.vector_stores.redis import RedisVectorStore
 
 
 # Load parameters from the TOML file
-with open('../config.toml', 'r') as f:
+with open('./config.toml', 'r') as f:
     params = toml.load(f)
 
 
-
+@st.cache_resource
 def get_pipeline() -> dict:
     """
     Initialize and return the embedding model and LLama-Index IngestionPipeline 
@@ -57,6 +58,7 @@ def get_pipeline() -> dict:
             index_name=params['redis']['vector_index_name'],
             index_prefix=params['redis']['vector_index_prefix'],
             redis_url="redis://" + params['redis']['host_name'] + ":" + str(params['redis']['port_no']),
+            metadata_fields=["source", "page_num"],
             # index_args = {'dims:': 3072}
         ),
         cache=IngestionCache(

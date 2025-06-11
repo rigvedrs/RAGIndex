@@ -1,0 +1,21 @@
+# Directories
+data/
+store/
+subs/
+assets/
+
+# Editor settings
+.vscode/
+
+# Python caches
+**/__pycache__/
+
+# Python Environment
+.docqna/
+.docqna-dev/
+
+# Database
+*.rdb
+
+# SENSITIVE INFORMATION!!!!!!!
+.env
