@@ -9,7 +9,8 @@
 > **Transform your documents into an intelligent Q&A system using LlamaIndex RAG capabilities and Streamlit's interactive interface. Upload PDFs, DOCX, or TXT files and get instant, contextual answers powered by advanced AI embeddings.**
 
 
-https://github.com/user-attachments/assets/a1fc33cd-a64d-45c2-a254-4773b6d358d0
+https://github.com/user-attachments/assets/a59324bf-1e8a-4dc5-a3b6-7cc32c9ad31f
+
 
 
 ## 🎯 What is RAGIndex?
