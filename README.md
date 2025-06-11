@@ -8,6 +8,8 @@
 
 > **Transform your documents into an intelligent Q&A system using LlamaIndex RAG capabilities and Streamlit's interactive interface. Upload PDFs, DOCX, or TXT files and get instant, contextual answers powered by advanced AI embeddings.**
 
+![RAGIndex Demo](demo/demo.gif)
+
 ## 🎯 What is RAGIndex?
 
 RAGIndex is a **Retrieval-Augmented Generation (RAG)** application that leverages **LlamaIndex** for document processing and **Streamlit** for the user interface. It transforms static documents into an interactive knowledge base where you can ask questions and receive accurate, context-aware answers.
