@@ -26,9 +26,9 @@ RAGIndex is a **Retrieval-Augmented Generation (RAG)** application that leverage
 - **🧠 Smart OCR Pipeline**: Automatic OCR processing for image-based PDFs using Tesseract with custom configuration and error handling
 - **📊 Document Tracking & Deduplication**: Advanced document store with Redis-backed tracking, duplicate detection, and ingestion state management
 - **⚡ High-Performance Vector Storage**: Redis vector store with semantic search, metadata fields, and optimized retrieval
-- **🔄 Real-time Processing**: Instant document processing with progress tracking and detailed ingestion statistics
+- **🔄 Real-time Processing**: Document processing with progress tracking and detailed ingestion statistics
 - **🎨 Modern UI**: Clean, intuitive interface with chat-style interactions and comprehensive error feedback
-- **🐳 Production Ready**: Fully containerized deployment with Docker Compose and scalable architecture
+- **🐳 Containerized Deployment**: Fully containerized with Docker Compose for easy setup and deployment
 
 ## 🏗️ Architecture
 
@@ -171,10 +171,11 @@ model_name = "your-custom-huggingface-model"
 ```
 
 ### Scaling with Docker
-For production deployment:
+For production deployment with multiple instances:
 ```bash
-docker compose up -d --scale RAGIndex=3
+docker compose up -d --scale docqna=3
 ```
+Note: Streamlit apps are single-threaded. Multiple instances can be run behind a load balancer (e.g., nginx) for better concurrency handling.
 
 ### API Integration
 The application can be extended with REST API endpoints for programmatic access.
@@ -224,17 +225,17 @@ We welcome contributions!
 ## 📊 Performance Metrics
 
 ### Document Processing Performance
-- **PDF Text Extraction**: ~0.5-1 seconds per page for standard PDFs
-- **OCR Processing**: ~2-3 seconds per page for image-based PDFs
+- **PDF Text Extraction**: ~0.5-2 seconds per page for standard PDFs (hardware dependent)
+- **OCR Processing**: ~3-5 seconds per page for image-based PDFs (varies by image quality and resolution)
 - **Document Chunking**: ~100-200 nodes per MB of text content
-- **Vector Embedding**: ~1000 chunks per minute with batch processing
-- **Query Response Time**: <500ms for most queries with Redis vector store
+- **Vector Embedding**: Processing speed depends on hardware; typically 500-1000 chunks per minute on modern CPUs
+- **Query Response Time**: 2-5 seconds for typical queries (includes vector search, LLM API call, and response generation)
 
 ### System Requirements & Scalability
 - **Memory Usage**: ~2GB base + 500MB per 100 processed documents
 - **Storage**: Redis-based persistence with configurable retention
-- **Concurrent Users**: Supports 10+ concurrent users with proper resource allocation
-- **Document Limits**: Tested with 1000+ documents and 100,000+ text chunks
+- **Concurrent Users**: Streamlit apps are single-threaded by default. For production use with multiple users, consider deploying multiple instances behind a load balancer or using Streamlit Cloud/Community Cloud which handles this automatically
+- **Document Limits**: Performance depends on available memory and Redis configuration. Start with smaller document sets and scale based on your hardware resources
 
 ## 🔒 Security
 
