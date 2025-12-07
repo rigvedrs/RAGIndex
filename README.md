@@ -33,7 +33,7 @@ RAGIndex is a **Retrieval-Augmented Generation (RAG)** application that leverage
 ## 🏗️ Architecture
 
 ### LlamaIndex Integration
-- **Embedding Model**: `bge-base-finetune-v2` for high-quality text embeddings with semantic splitting
+- **Embedding Model**: `bge-base-en-v1.5` for high-quality text embeddings with semantic splitting
 - **Vector Store**: Redis-backed vector storage with metadata fields for source tracking and page numbering
 - **Document Processing**: Semantic-aware text chunking with intelligent overlap and page boundary preservation
 - **Document Store**: Redis document store with duplicate detection and ingestion state tracking
@@ -141,7 +141,7 @@ When you ask questions, RAGIndex doesn't just provide answers—it tells you exa
 ### Embedding Model Settings
 ```toml
 [embed_model]
-model_name = "Suva/bge-base-finetune-v2"
+model_name = "BAAI/bge-base-en-v1.5"
 cache_folder = "/RAGIndex/store/models"
 embed_batch_size = 1
 ```

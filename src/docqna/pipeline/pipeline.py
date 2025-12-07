@@ -34,7 +34,7 @@ def get_pipeline() -> dict:
     - Dict: A dictionory of the embedding model and LLama-Index IngestionPipeline 
 
     Notes:
-    - The SentenceTransformerEmbeddings model used is "Suva/bge-base-finetune-v2", and its cached data is stored in "./store/models".
+    - The SentenceTransformerEmbeddings model used is "BAAI/bge-base-en-v1.5", and its cached data is stored in "./store/models".
       
       The Ingestion pipeline contains the following features:
     - Splitting: The function uses the SentenceSplitter with a chunk size of 1,000 characters and an overlap of 100 characters.
